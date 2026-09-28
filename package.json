@@ -1,0 +1,19 @@
+{
+  "name": "painting-practice-app",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Practice painting: pick a style and level, follow a step-by-step guide, upload your finished canvas, share it in the gallery.",
+  "type": "module",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning server/index.js",
+    "dev": "node --disable-warning=ExperimentalWarning --watch server/index.js",
+    "test": "node --disable-warning=ExperimentalWarning --test test/*.test.js"
+  },
+  "dependencies": {
+    "express": "^5.2.1",
+    "multer": "^2.4.0"
+  }
+}
