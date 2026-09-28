@@ -96,7 +96,7 @@ main { max-width: 960px; margin: 0 auto; padding: 20px 16px 32px; outline: none;
 }
 
 label { display: block; font-weight: 600; margin: 14px 0 6px; }
-input[type=text], textarea, select {
+input[type=text], input[type=password], textarea, select {
   width: 100%; min-height: 44px; padding: 10px 12px; font: inherit; color: var(--text);
   background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
 }
@@ -170,7 +170,6 @@ dialog {
   background: var(--surface); color: var(--text);
 }
 dialog::backdrop { background: rgba(0, 0, 0, .45); }
-.profile-list { display: grid; gap: 8px; margin: 12px 0; }
 
 #toast {
   position: fixed; left: 50%; bottom: calc(88px + env(safe-area-inset-bottom)); transform: translateX(-50%);
@@ -183,3 +182,20 @@ dialog::backdrop { background: rgba(0, 0, 0, .45); }
   h1 { font-size: 2.1rem; }
   .guide-layout { display: grid; grid-template-columns: 1fr 1.4fr; gap: 28px; align-items: start; }
 }
+
+/* ---------- Auth, AI, moderation, admin ---------- */
+.narrow { max-width: 440px; }
+.tag.ai { background: #ece6fb; color: #5a3fa8; }
+@media (prefers-color-scheme: dark) { .tag.ai { background: #2e2640; color: #c9b8ff; } }
+.ai-box { margin-top: 20px; }
+.report-reasons { display: grid; gap: 8px; }
+.report-reasons .option { padding: 10px 12px; }
+.small-actions { margin-top: 20px; }
+.link-btn {
+  background: none; border: 0; padding: 8px 4px; min-height: 44px; font: inherit; font-size: .9rem;
+  color: var(--muted); cursor: pointer; text-decoration: underline;
+}
+.link-btn:disabled { text-decoration: none; cursor: default; }
+.admin-item { margin-bottom: 12px; }
+.admin-row { display: flex; gap: 14px; align-items: flex-start; }
+.admin-thumb { width: 96px; height: 96px; object-fit: cover; border-radius: 10px; background: var(--surface-2); }

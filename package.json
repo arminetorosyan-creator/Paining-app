@@ -10,10 +10,14 @@
   "scripts": {
     "start": "node --disable-warning=ExperimentalWarning server/index.js",
     "dev": "node --disable-warning=ExperimentalWarning --watch server/index.js",
-    "test": "node --disable-warning=ExperimentalWarning --test test/*.test.js"
+    "test": "node --disable-warning=ExperimentalWarning --test test/*.test.js",
+    "make-admin": "node --disable-warning=ExperimentalWarning scripts/make-admin.js",
+    "reset-password": "node --disable-warning=ExperimentalWarning scripts/reset-password.js"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.128.0",
     "express": "^5.2.1",
-    "multer": "^2.4.0"
+    "multer": "^2.4.0",
+    "zod": "^4.6.5"
   }
 }

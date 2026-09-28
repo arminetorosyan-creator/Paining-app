@@ -39,7 +39,7 @@ const OIL_BASICS = [
   'Hog bristle brushes: flats and filberts in sizes 4, 8, 12',
   'Odourless mineral spirits for cleaning (work in a ventilated room)',
   'Palette knife and palette',
-  'Rags or paper towels',
+  'Rags or paper towels (afterwards, dry oily rags flat outdoors or keep them in a closed metal can with water: rags soaked in linseed oil can self-ignite)',
 ];
 
 const WATERCOLOR_BASICS = [

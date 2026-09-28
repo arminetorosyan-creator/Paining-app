@@ -4,12 +4,24 @@ import { dirname } from 'node:path';
 
 const SCHEMA = `
 PRAGMA foreign_keys = ON;
+PRAGMA journal_mode = WAL;
 
+-- "name" is the username.
 CREATE TABLE IF NOT EXISTS users (
-  id          INTEGER PRIMARY KEY AUTOINCREMENT,
-  name        TEXT NOT NULL UNIQUE COLLATE NOCASE,
-  level       TEXT NOT NULL DEFAULT 'beginner',
-  created_at  TEXT NOT NULL DEFAULT (datetime('now'))
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  name          TEXT NOT NULL UNIQUE COLLATE NOCASE,
+  level         TEXT NOT NULL DEFAULT 'beginner',
+  password_hash TEXT,
+  is_admin      INTEGER NOT NULL DEFAULT 0,
+  created_at    TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- Login sessions. Only a SHA-256 hash of the cookie token is stored.
+CREATE TABLE IF NOT EXISTS sessions (
+  token_hash  TEXT PRIMARY KEY,
+  user_id     INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at  TEXT NOT NULL DEFAULT (datetime('now')),
+  expires_at  TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS paintings (
@@ -21,6 +33,8 @@ CREATE TABLE IF NOT EXISTS paintings (
   guide_id    TEXT,
   image_file  TEXT NOT NULL,
   visibility  TEXT NOT NULL DEFAULT 'private' CHECK (visibility IN ('private', 'public')),
+  -- Moderation state, independent of the owner's visibility choice.
+  moderation  TEXT NOT NULL DEFAULT 'visible' CHECK (moderation IN ('visible', 'hidden')),
   created_at  TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
@@ -57,11 +71,50 @@ CREATE TABLE IF NOT EXISTS progress (
   updated_at  TEXT NOT NULL DEFAULT (datetime('now')),
   PRIMARY KEY (user_id, guide_id)
 );
+
+-- User reports on public paintings.
+CREATE TABLE IF NOT EXISTS reports (
+  painting_id INTEGER NOT NULL REFERENCES paintings(id) ON DELETE CASCADE,
+  user_id     INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  reason      TEXT NOT NULL,
+  details     TEXT NOT NULL DEFAULT '',
+  resolved    INTEGER NOT NULL DEFAULT 0,
+  created_at  TEXT NOT NULL DEFAULT (datetime('now')),
+  PRIMARY KEY (painting_id, user_id)
+);
+
+-- A user hides everything from users they block.
+CREATE TABLE IF NOT EXISTS blocks (
+  user_id         INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  blocked_user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at      TEXT NOT NULL DEFAULT (datetime('now')),
+  PRIMARY KEY (user_id, blocked_user_id)
+);
+
+-- AI-generated guides. Private to their creator until an admin publishes them.
+CREATE TABLE IF NOT EXISTS ai_guides (
+  id          TEXT PRIMARY KEY,
+  user_id     INTEGER REFERENCES users(id) ON DELETE SET NULL,
+  data        TEXT NOT NULL,
+  status      TEXT NOT NULL DEFAULT 'private' CHECK (status IN ('private', 'published')),
+  created_at  TEXT NOT NULL DEFAULT (datetime('now'))
+);
 `;
+
+// Columns added after the first MVP release; applied to older databases.
+const ADDED_COLUMNS = [
+  ['users', 'password_hash', 'TEXT'],
+  ['users', 'is_admin', 'INTEGER NOT NULL DEFAULT 0'],
+  ['paintings', 'moderation', "TEXT NOT NULL DEFAULT 'visible'"],
+];
 
 export function openDb(path) {
   if (path !== ':memory:') mkdirSync(dirname(path), { recursive: true });
   const db = new DatabaseSync(path);
   db.exec(SCHEMA);
+  for (const [table, column, type] of ADDED_COLUMNS) {
+    const exists = db.prepare(`SELECT 1 FROM pragma_table_info('${table}') WHERE name = ?`).get(column);
+    if (!exists) db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${type}`);
+  }
   return db;
 }
