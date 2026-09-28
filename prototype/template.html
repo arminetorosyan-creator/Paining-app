@@ -1,0 +1,1181 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Paint Practice</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root {
+  --ground: #f3f4f0;
+  --surface: #ffffff;
+  --surface-2: #e8ebe5;
+  --ink: #1e272e;
+  --muted: #5b676d;
+  --line: #d4dad3;
+  --accent: #0e6b68;
+  --accent-ink: #ffffff;
+  --accent-soft: #d6ebe8;
+  --highlight: #e0a400;
+  --danger: #a8243a;
+  --scrim: rgba(18, 24, 27, 0.5);
+  --shadow: 0 1px 2px rgba(30, 39, 46, 0.06), 0 8px 24px rgba(30, 39, 46, 0.07);
+  --radius: 14px;
+  --display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --body: "Atkinson Hyperlegible", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #12181b;
+    --surface: #1a2226;
+    --surface-2: #243036;
+    --ink: #e6ece9;
+    --muted: #9aa8ad;
+    --line: #2f3b41;
+    --accent: #4cc2b8;
+    --accent-ink: #0b1416;
+    --accent-soft: #173331;
+    --highlight: #f5c542;
+    --danger: #f08a9a;
+    --scrim: rgba(0, 0, 0, 0.6);
+    --shadow: none;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --ground: #12181b;
+  --surface: #1a2226;
+  --surface-2: #243036;
+  --ink: #e6ece9;
+  --muted: #9aa8ad;
+  --line: #2f3b41;
+  --accent: #4cc2b8;
+  --accent-ink: #0b1416;
+  --accent-soft: #173331;
+  --highlight: #f5c542;
+  --danger: #f08a9a;
+  --scrim: rgba(0, 0, 0, 0.6);
+  --shadow: none;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--ground);
+  color: var(--ink);
+  font: 16px/1.55 var(--body);
+  -webkit-font-smoothing: antialiased;
+}
+[hidden] { display: none !important; }
+img, canvas { max-width: 100%; display: block; }
+h1, h2, h3 { font-family: var(--display); line-height: 1.15; margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
+h1 { font-size: 1.9rem; font-weight: 800; }
+h2 { font-size: 1.25rem; font-weight: 600; }
+h3 { font-size: 1.05rem; font-weight: 600; }
+p { margin: 0; }
+a { color: var(--accent); }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted); }
+.small { font-size: 0.875rem; }
+.eyebrow { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+
+/* ---------- App shell ---------- */
+.topbar {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 16px; min-height: 56px;
+  background: color-mix(in srgb, var(--ground) 90%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+.brand { display: flex; align-items: center; gap: 8px; font-family: var(--display); font-weight: 800; font-size: 1.1rem; background: none; border: 0; padding: 0; cursor: pointer; }
+.brand-mark { width: 22px; height: 22px; flex: none; }
+.topbar .spacer { flex: 1; }
+.icon-btn {
+  display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: 50%;
+  background: none; border: 0; cursor: pointer; color: var(--ink);
+}
+.icon-btn:hover { background: var(--surface-2); }
+.icon-btn svg { width: 22px; height: 22px; }
+.chip-btn {
+  border: 1px solid var(--line); background: var(--surface); border-radius: 999px;
+  padding: 7px 14px; cursor: pointer; font-weight: 700; font-size: 0.9rem;
+}
+
+main {
+  max-width: 960px; margin: 0 auto;
+  padding-inline: 16px; padding-block: 20px calc(96px + env(safe-area-inset-bottom, 0px));
+  display: grid; gap: 24px; align-content: start;
+}
+
+.tabbar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  background: var(--surface); border-top: 1px solid var(--line);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.tabbar button {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 8px 0 10px; background: none; border: 0; cursor: pointer;
+  font-size: 0.75rem; color: var(--muted);
+}
+.tabbar svg { width: 24px; height: 24px; }
+.tabbar button[aria-current="page"] { color: var(--accent); font-weight: 700; }
+.tabbar .tab-add span.plus {
+  display: grid; place-items: center; width: 40px; height: 28px; border-radius: 999px;
+  background: var(--accent); color: var(--accent-ink);
+}
+.tabbar .tab-add span.plus svg { width: 20px; height: 20px; }
+
+/* ---------- Controls ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 46px; padding: 0 20px; border-radius: 999px;
+  border: 1.5px solid var(--line); background: var(--surface); color: var(--ink);
+  font-weight: 700; cursor: pointer; text-decoration: none;
+}
+.btn svg { width: 18px; height: 18px; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.btn.danger { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 40%, var(--line)); }
+.btn.block { width: 100%; }
+.btn:disabled { opacity: 0.55; cursor: default; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.stack { display: grid; gap: 12px; }
+.stack-lg { display: grid; gap: 20px; }
+
+.field { display: grid; gap: 6px; }
+.field > label, .label { font-weight: 700; }
+input[type=text], input[type=password], textarea, select {
+  width: 100%; min-height: 48px; padding: 11px 14px;
+  font: inherit; color: var(--ink); background: var(--surface);
+  border: 1.5px solid var(--line); border-radius: 12px;
+}
+textarea { min-height: 96px; resize: vertical; }
+input:focus, textarea:focus, select:focus { outline: none; border-color: var(--accent); }
+.hint { font-size: 0.875rem; color: var(--muted); }
+
+.choice-grid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+.choice {
+  position: relative; display: grid; gap: 8px; padding: 0; overflow: hidden; text-align: left;
+  background: var(--surface); border: 2px solid var(--line); border-radius: var(--radius); cursor: pointer;
+}
+.choice img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
+.choice .choice-text { padding: 0 12px 12px; display: grid; gap: 2px; }
+.choice small { color: var(--muted); font-size: 0.82rem; line-height: 1.35; }
+.choice[aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.choice[aria-pressed="true"]::after {
+  content: ""; position: absolute; top: 8px; right: 8px; width: 22px; height: 22px; border-radius: 50%;
+  background: var(--accent) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12l5 5 9-10'/%3E%3C/svg%3E") center / 14px no-repeat;
+}
+.pills { display: flex; flex-wrap: wrap; gap: 8px; }
+.pill {
+  min-height: 42px; padding: 0 16px; border-radius: 999px; cursor: pointer;
+  border: 1.5px solid var(--line); background: var(--surface); font-weight: 700;
+}
+.pill[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
+.step-label { display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px; }
+.step-label .mono { color: var(--accent); font-weight: 500; }
+
+/* ---------- Cards ---------- */
+.grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
+.card {
+  display: grid; align-content: start; overflow: hidden; text-align: left; padding: 0; cursor: pointer;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow);
+}
+.card .art { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; background: var(--surface-2); }
+.card-body { padding: 12px 14px 14px; display: grid; gap: 6px; }
+.meta { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag {
+  font-size: 0.75rem; padding: 3px 9px; border-radius: 999px;
+  background: var(--surface-2); color: var(--muted); white-space: nowrap;
+}
+.tag.lock { background: var(--accent-soft); color: var(--accent); }
+.stars { color: var(--highlight); letter-spacing: 1px; }
+.swatches { display: flex; gap: 4px; }
+.swatches i { width: 14px; height: 14px; border-radius: 50%; border: 1px solid rgba(0,0,0,.12); }
+
+/* ---------- Welcome ---------- */
+.hero { display: grid; gap: 16px; }
+.hero-art { border-radius: 18px; overflow: hidden; border: 1px solid var(--line); }
+.hero-art img { width: 100%; aspect-ratio: 21 / 9; }
+.how { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); counter-reset: how; }
+.how li { list-style: none; display: grid; gap: 4px; padding: 14px; border-radius: var(--radius); background: var(--surface); border: 1px solid var(--line); }
+.how { padding: 0; margin: 0; }
+
+/* ---------- Guide ---------- */
+.guide-head { display: grid; gap: 12px; }
+.guide-head img { width: 100%; aspect-ratio: 21 / 9; border-radius: 18px; border: 1px solid var(--line); }
+.facts { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.facts div { background: var(--surface); padding: 10px 12px; display: grid; gap: 2px; }
+.facts div:last-child { grid-column: 1 / -1; }
+.facts b { font-weight: 700; }
+.palette { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 10px; }
+.paint { display: grid; gap: 6px; font-size: 0.8rem; line-height: 1.25; }
+.paint .blob { height: 44px; border-radius: 22px 30px 26px 18px / 18px 24px 30px 22px; border: 1px solid rgba(0,0,0,.1); }
+.paint .mono { color: var(--muted); font-size: 0.72rem; }
+.checklist { list-style: none; margin: 0; padding: 0; display: grid; }
+.checklist li { display: flex; gap: 12px; align-items: flex-start; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.checklist li:last-child { border-bottom: 0; }
+.checklist input[type=checkbox] { width: 22px; height: 22px; margin: 2px 0 0; accent-color: var(--accent); flex: none; }
+.checklist label { cursor: pointer; }
+.steps li { gap: 14px; }
+.steps .n {
+  flex: none; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center;
+  font-family: var(--mono); font-weight: 500; font-size: 0.85rem; background: var(--accent-soft); color: var(--accent);
+}
+.steps li.done .n { background: var(--accent); color: var(--accent-ink); }
+.steps li.done .step-text { opacity: 0.55; }
+.step-text { flex: 1; display: grid; gap: 4px; }
+.progress { height: 8px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+.progress div { height: 100%; background: var(--highlight); transition: width .25s ease; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; display: grid; gap: 12px; }
+.notice { padding: 12px 14px; border-radius: 12px; background: var(--accent-soft); color: var(--ink); }
+.two-col { display: grid; gap: 20px; }
+@media (min-width: 760px) {
+  .two-col { grid-template-columns: 1fr 1.3fr; align-items: start; }
+  h1 { font-size: 2.3rem; }
+}
+
+/* ---------- Painting ---------- */
+.painting-img { width: 100%; max-height: 70vh; object-fit: contain; background: var(--surface-2); border-radius: 18px; }
+.star-input { display: flex; gap: 2px; }
+.star-input button { background: none; border: 0; cursor: pointer; padding: 6px; min-width: 44px; min-height: 44px; font-size: 1.9rem; line-height: 1; color: var(--line); }
+.star-input button.on { color: var(--highlight); }
+.link-btn { background: none; border: 0; padding: 10px 4px; cursor: pointer; color: var(--muted); text-decoration: underline; font-size: 0.9rem; }
+
+/* ---------- My page ---------- */
+.profile { display: flex; align-items: center; gap: 14px; }
+.avatar { width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; font-family: var(--display); font-weight: 800; font-size: 1.4rem; background: var(--accent); color: var(--accent-ink); flex: none; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.stats div { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; }
+.stats b { display: block; font-family: var(--display); font-size: 1.4rem; }
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); overflow-x: auto; }
+.tabs button { background: none; border: 0; border-bottom: 3px solid transparent; padding: 10px 8px; cursor: pointer; color: var(--muted); white-space: nowrap; font-weight: 700; }
+.tabs button[aria-selected="true"] { color: var(--accent); border-color: var(--accent); }
+.empty { text-align: center; padding: 28px 16px; display: grid; gap: 12px; justify-items: center; color: var(--muted); }
+
+/* ---------- Upload ---------- */
+.drop {
+  display: grid; place-items: center; gap: 8px; text-align: center; min-height: 180px; padding: 20px;
+  border: 2px dashed var(--line); border-radius: 18px; background: var(--surface); cursor: pointer; color: var(--muted);
+}
+.drop svg { width: 36px; height: 36px; color: var(--accent); }
+.drop.has-image { padding: 0; border-style: solid; overflow: hidden; }
+.drop img { width: 100%; max-height: 360px; object-fit: contain; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---------- Sheet & toast ---------- */
+dialog.sheet {
+  width: min(460px, calc(100vw - 32px)); max-height: calc(100vh - 48px); overflow: auto;
+  border: 0; border-radius: 20px; padding: 20px; background: var(--surface); color: var(--ink);
+}
+dialog.sheet::backdrop { background: var(--scrim); }
+.toast {
+  position: fixed; left: 50%; bottom: calc(84px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%) translateY(8px);
+  background: var(--ink); color: var(--ground); padding: 10px 18px; border-radius: 999px; font-size: 0.9rem;
+  opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; max-width: calc(100vw - 32px); z-index: 40;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.demo-note { font-size: 0.8rem; color: var(--muted); border-top: 1px solid var(--line); padding-top: 14px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn" id="back" type="button" aria-label="Back" hidden>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+  </button>
+  <button class="brand" id="brand" type="button">
+    <svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C6.5 2 2 6.2 2 11.5 2 16 5.6 19 9 19c1.3 0 2-.8 2-1.8 0-1.3-1-1.7-1-2.9 0-1 .8-1.8 2-1.8h2.3c3.7 0 7.7-1.6 7.7-5.8C22 4.1 17.6 2 12 2z" fill="var(--accent)"/><circle cx="7" cy="10" r="1.6" fill="var(--highlight)"/><circle cx="11" cy="6.5" r="1.6" fill="var(--danger)"/><circle cx="16" cy="7" r="1.6" fill="var(--ground)"/></svg>
+    <span>Paint Practice</span>
+  </button>
+  <span class="spacer"></span>
+  <button class="chip-btn" id="account" type="button"></button>
+</header>
+
+<main id="view" tabindex="-1"></main>
+
+<nav class="tabbar" aria-label="Main">
+  <button type="button" data-tab="discover">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18.4 2.6a2 2 0 012.9 2.9L11 15.8 8 16l.2-3z"/><path d="M8 16c0 2.8-2 5-5 5 1-1.2 1-2.4 1-3.5A2.6 2.6 0 016.6 15"/></svg>
+    Discover
+  </button>
+  <button type="button" data-tab="gallery">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 16l5-5 4 4 3-3 6 6"/><circle cx="15.5" cy="8.5" r="1.5"/></svg>
+    Gallery
+  </button>
+  <button type="button" data-tab="upload" class="tab-add">
+    <span class="plus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span>
+    Upload
+  </button>
+  <button type="button" data-tab="me">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>
+    My page
+  </button>
+</nav>
+
+<dialog class="sheet" id="sheet"></dialog>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script id="content" type="application/json">__CONTENT__</script>
+<script>
+(() => {
+'use strict';
+
+// =====================================================================
+// Content (curated guides) and paint colours shown as swatches
+// =====================================================================
+const CONTENT = JSON.parse(document.getElementById('content').textContent);
+const { styles: STYLES, levels: LEVELS, mediums: MEDIUMS, guides: GUIDES } = CONTENT;
+
+const PAINTS = {
+  white: ['Titanium white', '#f4f3ee', 'PW6'],
+  marsBlack: ['Mars black', '#2b2a29', 'PBk11'],
+  ivoryBlack: ['Ivory black', '#231f1e', 'PBk9'],
+  cadYellow: ['Cadmium yellow (hue)', '#f4bf00', ''],
+  cadRed: ['Cadmium red (hue)', '#cf3a2b', ''],
+  cadRedLight: ['Cadmium red light', '#e0482c', ''],
+  cadOrange: ['Cadmium orange', '#ee7a1e', ''],
+  ultramarine: ['Ultramarine blue', '#2a3c9b', 'PB29'],
+  ochre: ['Yellow ochre', '#c8962e', 'PY43'],
+  umber: ['Burnt umber', '#5a3a22', 'PBr7'],
+  sienna: ['Burnt sienna', '#8a3b1f', 'PBr7'],
+  alizarin: ['Alizarin crimson (hue)', '#9e1b32', ''],
+  rose: ['Permanent rose', '#d6336c', ''],
+  viridian: ['Viridian', '#2e7d6b', 'PG18'],
+  paynes: ["Payne's grey", '#3b4852', ''],
+  magenta: ['Bright magenta', '#c2185b', ''],
+  lime: ['Lime green', '#a4d233', ''],
+  turquoise: ['Turquoise', '#1fb5ad', ''],
+  cyan: ['Process cyan', '#00a0dc', ''],
+  pMagenta: ['Process magenta', '#d6007e', ''],
+  pYellow: ['Process yellow', '#ffe600', ''],
+  wcYellow: ['Yellow', '#f2c230', ''],
+  wcRed: ['Red', '#c8363a', ''],
+  wcBlue: ['Blue', '#2f5fa8', ''],
+  gBlack: ['Black', '#1f1f1f', ''],
+  gYellow: ['Primary yellow', '#ffd400', ''],
+  gRed: ['Primary red', '#e32322', ''],
+  gBlue: ['Primary blue', '#1f5fbf', ''],
+};
+const BASE_PALETTE = {
+  acrylic: ['white', 'marsBlack', 'cadYellow', 'cadRed', 'ultramarine'],
+  oil: ['white', 'ivoryBlack', 'cadYellow', 'alizarin', 'ultramarine', 'ochre', 'umber'],
+  watercolor: ['wcYellow', 'wcRed', 'wcBlue', 'sienna'],
+  gouache: ['white', 'gBlack', 'gYellow', 'gRed', 'gBlue'],
+};
+const EXTRA_PAINTS = {
+  'realism-intermediate-cup': ['umber', 'ochre'],
+  'realism-advanced-portrait': ['cadRedLight'],
+  'impressionism-intermediate-garden': ['rose', 'viridian'],
+  'impressionism-advanced-rainy-street': ['cadOrange', 'paynes'],
+  'pop-art-intermediate-portrait': ['magenta', 'lime', 'turquoise'],
+  'pop-art-advanced-comic': ['cyan', 'pMagenta', 'pYellow'],
+};
+const paletteFor = (g) => [...BASE_PALETTE[g.medium], ...(EXTRA_PAINTS[g.id] || [])].map((k) => PAINTS[k]);
+
+const byId = (list, id) => list.find((x) => x.id === id);
+const styleName = (id) => byId(STYLES, id)?.name ?? id;
+const levelName = (id) => byId(LEVELS, id)?.name ?? id;
+const mediumName = (id) => byId(MEDIUMS, id)?.name ?? id;
+const getGuide = (id) => GUIDES.find((g) => g.id === id) || null;
+const LEVEL_ORDER = LEVELS.map((l) => l.id);
+
+// =====================================================================
+// Procedural "paintings" for style cards, guides and sample gallery
+// =====================================================================
+function rng(seedStr) {
+  let h = 1779033703 ^ seedStr.length;
+  for (let i = 0; i < seedStr.length; i++) { h = Math.imul(h ^ seedStr.charCodeAt(i), 3432918353); h = (h << 13) | (h >>> 19); }
+  return () => { h = Math.imul(h ^ (h >>> 16), 2246822507); h = Math.imul(h ^ (h >>> 13), 3266489909); return ((h ^= h >>> 16) >>> 0) / 4294967296; };
+}
+const pick = (r, arr) => arr[Math.floor(r() * arr.length)];
+
+const PAINTERS = {
+  realism(ctx, w, h, r) {
+    const bg = ctx.createLinearGradient(0, 0, 0, h);
+    bg.addColorStop(0, pick(r, ['#c9c2b3', '#b9c3c4', '#cbbfa8'])); bg.addColorStop(0.62, '#8e877a'); bg.addColorStop(0.63, '#6f5a45'); bg.addColorStop(1, '#4a3a2c');
+    ctx.fillStyle = bg; ctx.fillRect(0, 0, w, h);
+    const cx = w * (0.4 + r() * 0.2), cy = h * 0.55, rad = h * 0.24;
+    ctx.fillStyle = 'rgba(20,14,10,.45)'; ctx.beginPath(); ctx.ellipse(cx + rad * 0.5, cy + rad * 0.9, rad * 1.1, rad * 0.25, 0, 0, 7); ctx.fill();
+    const fruit = pick(r, [['#f06b4f', '#b3261e', '#4a0d0a'], ['#f2d25a', '#c99a14', '#5b4205'], ['#9fcf5a', '#4f8a2a', '#1d3a10']]);
+    const g = ctx.createRadialGradient(cx - rad * 0.4, cy - rad * 0.45, rad * 0.1, cx, cy, rad * 1.05);
+    g.addColorStop(0, '#fff8e8'); g.addColorStop(0.12, fruit[0]); g.addColorStop(0.6, fruit[1]); g.addColorStop(1, fruit[2]);
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, rad, 0, 7); ctx.fill();
+    ctx.strokeStyle = '#3b2716'; ctx.lineWidth = h * 0.018; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(cx, cy - rad * 0.9); ctx.quadraticCurveTo(cx + rad * 0.1, cy - rad * 1.2, cx + rad * 0.25, cy - rad * 1.3); ctx.stroke();
+  },
+  impressionism(ctx, w, h, r) {
+    const sky = ctx.createLinearGradient(0, 0, 0, h * 0.65);
+    sky.addColorStop(0, '#3d5a9e'); sky.addColorStop(0.45, '#d9829a'); sky.addColorStop(0.8, '#f3a64a'); sky.addColorStop(1, '#f7e08a');
+    ctx.fillStyle = sky; ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = '#2c2a4a'; ctx.fillRect(0, h * 0.65, w, h * 0.35);
+    const sunX = w * (0.3 + r() * 0.4);
+    ctx.fillStyle = '#fff4c2'; ctx.beginPath(); ctx.arc(sunX, h * 0.6, h * 0.07, 0, 7); ctx.fill();
+    const dab = (x, y, c, s) => { ctx.fillStyle = c; ctx.beginPath(); ctx.ellipse(x, y, s, s * 0.38, r() * 0.6 - 0.3, 0, 7); ctx.fill(); };
+    for (let i = 0; i < 520; i++) {
+      const y = r() * h, x = r() * w, low = y > h * 0.65;
+      const c = low ? pick(r, ['#5b4b8a', '#3f6e4f', '#c9743a', '#7f5ea8', '#e3a04f']) : pick(r, ['#f7c86a', '#e98a8a', '#9fb4e8', '#fbe3a4', '#c96f9a']);
+      ctx.globalAlpha = 0.55 + r() * 0.4; dab(x, y, c, 3 + r() * (w / 60));
+    }
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = '#fff1b8'; ctx.lineWidth = 3;
+    for (let i = 0; i < 8; i++) { const y = h * 0.68 + i * h * 0.03; ctx.beginPath(); ctx.moveTo(sunX - 20 + r() * 10, y); ctx.lineTo(sunX + 10 + r() * 20, y); ctx.stroke(); }
+  },
+  abstract(ctx, w, h, r) {
+    const pal = pick(r, [['#1f4e79', '#f2a541', '#e4572e', '#76b041', '#f3f1ea'], ['#264653', '#2a9d8f', '#e9c46a', '#f4a261', '#e76f51'], ['#3a0ca3', '#f72585', '#4cc9f0', '#ffd166', '#fefae0']]);
+    ctx.fillStyle = '#f7f5ef'; ctx.fillRect(0, 0, w, h);
+    const xs = [0, w * (0.25 + r() * 0.2), w * (0.55 + r() * 0.2), w], ys = [0, h * (0.3 + r() * 0.2), h];
+    for (let i = 0; i < 3; i++) for (let j = 0; j < 2; j++) {
+      ctx.fillStyle = pick(r, pal);
+      ctx.fillRect(xs[i] + 5, ys[j] + 5, xs[i + 1] - xs[i] - 10, ys[j + 1] - ys[j] - 10);
+    }
+    ctx.strokeStyle = '#f7f5ef'; ctx.lineWidth = 9;
+    ctx.beginPath(); ctx.moveTo(0, h * (0.1 + r() * 0.3)); ctx.lineTo(w, h * (0.6 + r() * 0.3)); ctx.stroke();
+  },
+  'pop-art'(ctx, w, h, r) {
+    const bg = pick(r, ['#ff4f9a', '#00b4d8', '#ffd60a', '#7bd389']);
+    ctx.fillStyle = bg; ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = 'rgba(255,255,255,.35)';
+    for (let y = 6; y < h; y += 14) for (let x = (y / 14) % 2 ? 6 : 13; x < w; x += 14) { ctx.beginPath(); ctx.arc(x, y, 3.5, 0, 7); ctx.fill(); }
+    ctx.save(); ctx.translate(w / 2, h / 2); ctx.rotate(-0.4 + r() * 0.3);
+    ctx.fillStyle = bg === '#ffd60a' ? '#ff4f9a' : '#ffd60a'; ctx.strokeStyle = '#111'; ctx.lineWidth = 7;
+    ctx.beginPath(); ctx.moveTo(-w * 0.3, -h * 0.05);
+    ctx.quadraticCurveTo(0, h * 0.35, w * 0.3, -h * 0.1); ctx.quadraticCurveTo(0, h * 0.15, -w * 0.3, -h * 0.05);
+    ctx.fill(); ctx.stroke(); ctx.restore();
+  },
+  minimalism(ctx, w, h, r) {
+    const g = ctx.createLinearGradient(0, 0, 0, h);
+    const deep = pick(r, [['#15294a', '#4b6c9c'], ['#2b1d3f', '#8c6d9e'], ['#12343b', '#5d8f8a']]);
+    g.addColorStop(0, deep[0]); g.addColorStop(0.62, deep[1]); g.addColorStop(0.62, deep[0]); g.addColorStop(1, deep[1]);
+    ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+    const mx = w * (0.55 + r() * 0.2), my = h * 0.3;
+    ctx.fillStyle = '#f5efdc'; ctx.beginPath(); ctx.arc(mx, my, h * 0.09, 0, 7); ctx.fill();
+    ctx.fillStyle = 'rgba(245,239,220,.8)';
+    for (let i = 0; i < 9; i++) { const y = h * 0.66 + i * h * 0.035; const len = w * (0.06 - i * 0.004); ctx.fillRect(mx - len / 2 + (r() - 0.5) * 6, y, len, 3); }
+  },
+};
+
+const artCache = new Map();
+function artURL(style, seed, w = 480, h = 360) {
+  const key = `${style}|${seed}|${w}x${h}`;
+  if (artCache.has(key)) return artCache.get(key);
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  (PAINTERS[style] || PAINTERS.abstract)(c.getContext('2d'), w, h, rng(seed));
+  const url = c.toDataURL('image/jpeg', 0.85);
+  artCache.set(key, url);
+  return url;
+}
+
+// =====================================================================
+// Storage: this browser only (prototype). Falls back to memory.
+// =====================================================================
+const STORE_KEY = 'paint-practice-prototype-v1';
+const memory = {};
+function load() {
+  try { const raw = localStorage.getItem(STORE_KEY); return raw ? JSON.parse(raw) : null; } catch { return memory.db ?? null; }
+}
+function save() {
+  memory.db = db;
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(db)); } catch { /* storage blocked or full: keep in memory */ }
+}
+
+// Uploaded photos live in IndexedDB (too big for localStorage).
+const images = new Map();
+const idb = (() => {
+  let dbp = null;
+  const open = () => dbp ??= new Promise((res, rej) => {
+    try {
+      const req = indexedDB.open('paint-practice-images', 1);
+      req.onupgradeneeded = () => req.result.createObjectStore('img');
+      req.onsuccess = () => res(req.result);
+      req.onerror = () => rej(req.error);
+    } catch (e) { rej(e); }
+  });
+  const tx = async (mode, fn) => {
+    const d = await open();
+    return new Promise((res, rej) => { const t = d.transaction('img', mode); const r = fn(t.objectStore('img')); t.oncomplete = () => res(r?.result); t.onerror = () => rej(t.error); });
+  };
+  return {
+    put: (k, v) => tx('readwrite', (s) => s.put(v, k)).catch(() => {}),
+    get: (k) => tx('readonly', (s) => s.get(k)).catch(() => undefined),
+    del: (k) => tx('readwrite', (s) => s.delete(k)).catch(() => {}),
+  };
+})();
+
+function seedData() {
+  const day = 86400000, now = Date.now();
+  const p = (id, owner, title, style, guideId, daysAgo, ratings, notes = '') =>
+    ({ id, owner, title, notes, style, guideId, visibility: 'public', createdAt: now - daysAgo * day, image: `seed:${style}:${id}`, ratings, likes: [] });
+  return {
+    version: 1,
+    session: null,
+    welcomed: false,
+    users: {
+      mira_paints: { level: 'intermediate', sample: true },
+      tomasz: { level: 'beginner', sample: true },
+      'lena.art': { level: 'advanced', sample: true },
+    },
+    me: {},
+    paintings: [
+      p('s1', 'mira_paints', 'Evening over the wheat field', 'impressionism', 'impressionism-beginner-sunset', 1, { tomasz: 5, 'lena.art': 4 }, 'Kept the strokes loose this time. The purple field was a happy accident.'),
+      p('s2', 'tomasz', 'My first apple', 'realism', 'realism-beginner-apple', 2, { mira_paints: 4 }, 'The shadow took three tries.'),
+      p('s3', 'lena.art', 'Blue hour', 'minimalism', 'minimalism-beginner-moon', 3, { mira_paints: 5, tomasz: 5 }),
+      p('s4', 'tomasz', 'Kitchen colour blocks', 'abstract', 'abstract-beginner-color-blocks', 4, { 'lena.art': 3 }),
+      p('s5', 'mira_paints', 'Banana, but louder', 'pop-art', 'pop-art-beginner-fruit', 6, { tomasz: 4, 'lena.art': 5 }),
+      p('s6', 'lena.art', 'Pear study', 'realism', 'realism-beginner-apple', 8, { mira_paints: 5 }),
+      p('s7', 'mira_paints', 'Tape and teal', 'abstract', 'abstract-beginner-color-blocks', 10, {}),
+    ],
+  };
+}
+
+let db = load() || seedData();
+const userData = (name = db.session) => {
+  if (!name) return null;
+  db.me[name] ??= { likedGuides: [], planned: [], progress: {}, likedPaintings: [], reported: [], blocked: [] };
+  return db.me[name];
+};
+const currentUser = () => (db.session && db.users[db.session] ? { name: db.session, ...db.users[db.session] } : null);
+
+async function hashPassword(name, pass) {
+  const data = new TextEncoder().encode(`paint-practice:${name.toLowerCase()}:${pass}`);
+  try {
+    const buf = await crypto.subtle.digest('SHA-256', data);
+    return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');
+  } catch {
+    let h = 0; for (const b of data) h = (h * 31 + b) | 0; return `weak-${h}`;
+  }
+}
+
+// =====================================================================
+// UI helpers
+// =====================================================================
+const view = document.getElementById('view');
+const sheet = document.getElementById('sheet');
+const ESC = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ESC[c]);
+const fmtDuration = (m) => (m < 60 ? `${m} min` : `${Math.round((m / 60) * 10) / 10} h`);
+const fmtDate = (t) => new Date(t).toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+const avg = (ratings) => { const v = Object.values(ratings || {}); return v.length ? Math.round((v.reduce((a, b) => a + b, 0) / v.length) * 10) / 10 : null; };
+const starsText = (n) => '★'.repeat(Math.round(n)) + '☆'.repeat(5 - Math.round(n));
+
+let toastTimer;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+// In-page modal sheet. Resolves with FormData on submit, or null.
+function openSheet(html) {
+  sheet.innerHTML = `<form method="dialog" class="stack-lg">${html}</form>`;
+  if (!sheet.open) sheet.showModal();
+  return new Promise((resolve) => {
+    const form = sheet.querySelector('form');
+    let done = false;
+    const finish = (v) => { if (done) return; done = true; if (sheet.open) sheet.close(); resolve(v); };
+    form.onsubmit = (e) => { e.preventDefault(); finish(new FormData(form)); };
+    form.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => finish(null)));
+    sheet.onclose = () => finish(null);
+    sheet.onclick = (e) => { if (e.target === sheet) finish(null); };
+  });
+}
+async function confirmSheet(title, text, action, danger = false) {
+  const res = await openSheet(`
+    <h2>${esc(title)}</h2><p>${esc(text)}</p>
+    <div class="row"><button class="btn ${danger ? 'danger' : 'primary'}" type="submit">${esc(action)}</button>
+    <button class="btn" type="button" data-close>Cancel</button></div>`);
+  return !!res;
+}
+let returnTo = null;
+async function needAccount(reason) {
+  returnTo = route;
+  const res = await openSheet(`
+    <h2>Create a free account</h2>
+    <p>${esc(reason)}</p>
+    <div class="stack"><button class="btn primary block" type="submit" name="go" value="signup">Sign up</button>
+    <button class="btn block" type="button" data-login>I already have an account</button>
+    <button class="btn block" type="button" data-close>Not now</button></div>`);
+  if (res) go('signup');
+}
+sheet.addEventListener('click', (e) => { if (e.target.closest('[data-login]')) { sheet.close(); go('login'); } });
+
+// =====================================================================
+// Router (in-memory; back button in the top bar)
+// =====================================================================
+const history = [];
+let route = { name: 'home', params: {} };
+function go(name, params = {}, { replace = false } = {}) {
+  if (!replace) history.push(route);
+  route = { name, params };
+  render();
+  window.scrollTo({ top: 0 });
+}
+function back() { route = history.pop() || { name: 'home', params: {} }; render(); window.scrollTo({ top: 0 }); }
+document.getElementById('back').onclick = back;
+document.getElementById('brand').onclick = () => { history.length = 0; go('home', {}, { replace: true }); };
+document.getElementById('account').onclick = () => go(currentUser() ? 'me' : 'login');
+document.querySelectorAll('[data-tab]').forEach((b) => b.addEventListener('click', () => {
+  history.length = 0;
+  const tab = b.dataset.tab;
+  go(tab === 'discover' ? 'home' : tab, {}, { replace: true });
+}));
+
+const TAB_FOR = { home: 'discover', results: 'discover', guide: 'discover', gallery: 'gallery', painting: 'gallery', upload: 'upload', me: 'me', login: 'me', signup: 'me' };
+
+function render() {
+  const user = currentUser();
+  document.getElementById('account').textContent = user ? user.name : 'Log in';
+  document.getElementById('back').hidden = history.length === 0;
+  document.querySelectorAll('[data-tab]').forEach((b) => (b.dataset.tab === TAB_FOR[route.name] ? b.setAttribute('aria-current', 'page') : b.removeAttribute('aria-current')));
+  view.onclick = null; view.onchange = null; view.onsubmit = null;
+  (VIEWS[route.name] || VIEWS.home)(route.params);
+}
+
+// =====================================================================
+// Shared renderers
+// =====================================================================
+function guideCard(g) {
+  const sw = paletteFor(g).slice(0, 6).map(([n, hex]) => `<i style="background:${hex}" title="${esc(n)}"></i>`).join('');
+  return `<button class="card" type="button" data-guide="${esc(g.id)}">
+    <img class="art" src="${artURL(g.style, g.id)}" alt="">
+    <div class="card-body">
+      <span class="eyebrow">${esc(levelName(g.level))} · ${esc(mediumName(g.medium))}</span>
+      <h3>${esc(g.title)}</h3>
+      <p class="small muted">${esc(g.summary)}</p>
+      <div class="row" style="justify-content:space-between">
+        <span class="swatches" aria-hidden="true">${sw}</span>
+        <span class="mono small muted">${fmtDuration(g.durationMinutes)} · ${g.steps.length} steps</span>
+      </div>
+    </div></button>`;
+}
+function paintingSrc(p) {
+  if (p.image.startsWith('seed:')) { const [, style, seed] = p.image.split(':'); return artURL(style, seed, 800, 600); }
+  return images.get(p.id) || artURL(p.style, p.id);
+}
+function paintingCard(p, { showAuthor = true } = {}) {
+  const a = avg(p.ratings), n = Object.keys(p.ratings || {}).length;
+  return `<button class="card" type="button" data-painting="${esc(p.id)}">
+    <img class="art" src="${paintingSrc(p)}" alt="${esc(p.title)}" loading="lazy">
+    <div class="card-body">
+      <h3>${esc(p.title)}</h3>
+      ${showAuthor ? `<p class="small muted">by ${esc(p.owner)}</p>` : ''}
+      <div class="meta">
+        <span class="tag">${esc(styleName(p.style))}</span>
+        ${p.visibility === 'private' ? '<span class="tag lock">Private</span>' : ''}
+        ${n ? `<span class="tag"><span class="stars">★</span> ${a} (${n})</span>` : ''}
+      </div></div></button>`;
+}
+// One delegated handler for guide and painting cards on every screen.
+view.addEventListener('click', (e) => {
+  const g = e.target.closest('[data-guide]'); if (g) { e.stopImmediatePropagation(); return go('guide', { id: g.dataset.guide }); }
+  const p = e.target.closest('[data-painting]'); if (p) { e.stopImmediatePropagation(); return go('painting', { id: p.dataset.painting }); }
+}, true);
+const empty = (text, btn = '') => `<div class="empty"><p>${text}</p>${btn}</div>`;
+
+// =====================================================================
+// Views
+// =====================================================================
+const VIEWS = {};
+
+VIEWS.home = (params) => {
+  const user = currentUser();
+  const sel = { style: params.style || '', level: params.level || user?.level || 'beginner', medium: params.medium || '' };
+  view.innerHTML = `
+    ${!db.welcomed && !user ? `
+    <section class="hero">
+      <div class="hero-art"><img src="${artURL('impressionism', 'welcome', 1050, 450)}" alt=""></div>
+      <h1>Pick up a brush tonight.</h1>
+      <p class="muted">Choose a style and your level. You get a subject to paint, the exact materials, and a step-by-step guide for a real canvas. Then share the result.</p>
+      <ol class="how">
+        <li><span class="eyebrow">Step 1</span><b>Choose</b><span class="small muted">A style, your level and the paint you have.</span></li>
+        <li><span class="eyebrow">Step 2</span><b>Paint</b><span class="small muted">Follow the steps and tick them off as you go.</span></li>
+        <li><span class="eyebrow">Step 3</span><b>Share</b><span class="small muted">Photograph your canvas. Keep it private or post it to the gallery.</span></li>
+      </ol>
+      <div class="row"><button class="btn primary" type="button" id="start">Start choosing</button><button class="btn" type="button" id="dismiss">I'll just look around</button></div>
+    </section>` : `
+    <section class="stack">
+      <span class="eyebrow">${user ? `Hi ${esc(user.name)}` : 'Discover'}</span>
+      <h1>What will you paint today?</h1>
+    </section>`}
+
+    <section id="chooser" class="stack-lg">
+      <div>
+        <div class="step-label"><span class="mono">1</span><h2>Style</h2></div>
+        <div class="choice-grid">
+          ${STYLES.map((s) => `<button class="choice" type="button" data-style="${s.id}" aria-pressed="${s.id === sel.style}">
+            <img src="${artURL(s.id, 'style-' + s.id, 480, 270)}" alt="">
+            <span class="choice-text"><b>${esc(s.name)}</b><small>${esc(s.blurb)}</small></span></button>`).join('')}
+        </div>
+      </div>
+      <div>
+        <div class="step-label"><span class="mono">2</span><h2>Your level</h2></div>
+        <div class="pills">${LEVELS.map((l) => `<button class="pill" type="button" data-level="${l.id}" aria-pressed="${l.id === sel.level}" title="${esc(l.blurb)}">${esc(l.name)}</button>`).join('')}</div>
+        <p class="hint" id="level-blurb" style="margin-top:8px">${esc(byId(LEVELS, sel.level).blurb)}</p>
+      </div>
+      <div>
+        <div class="step-label"><span class="mono">3</span><h2>Paint you have <span class="muted small" style="font-family:var(--body);font-weight:400">optional</span></h2></div>
+        <div class="pills">
+          <button class="pill" type="button" data-medium="" aria-pressed="${!sel.medium}">Any</button>
+          ${MEDIUMS.map((m) => `<button class="pill" type="button" data-medium="${m.id}" aria-pressed="${m.id === sel.medium}">${esc(m.name)}</button>`).join('')}
+        </div>
+      </div>
+      <button class="btn primary" type="button" id="suggest" ${sel.style ? '' : 'disabled'}>${sel.style ? `Show ${esc(styleName(sel.style))} ideas` : 'Choose a style first'}</button>
+    </section>`;
+
+  const dismiss = () => { db.welcomed = true; save(); };
+  view.querySelector('#start')?.addEventListener('click', () => { dismiss(); render(); document.getElementById('chooser').scrollIntoView({ behavior: 'smooth' }); });
+  view.querySelector('#dismiss')?.addEventListener('click', () => { dismiss(); go('gallery', {}, { replace: true }); });
+
+  view.onclick = (e) => {
+    const t = e.target.closest('[data-style],[data-level],[data-medium]');
+    if (t) {
+      if ('style' in t.dataset) sel.style = t.dataset.style;
+      if ('level' in t.dataset) sel.level = t.dataset.level;
+      if ('medium' in t.dataset) sel.medium = t.dataset.medium;
+      route.params = { ...sel };
+      const y = window.scrollY; render(); window.scrollTo({ top: y });
+      return;
+    }
+    if (e.target.closest('#suggest') && sel.style) go('results', { ...sel });
+  };
+};
+
+VIEWS.results = ({ style, level, medium }) => {
+  const match = (g, lvl) => g.style === style && (!medium || g.medium === medium) && (!lvl || g.level === lvl);
+  let guides = GUIDES.filter((g) => match(g, level));
+  let fallback = false;
+  if (!guides.length) {
+    const idx = LEVEL_ORDER.indexOf(level);
+    guides = GUIDES.filter((g) => match(g)).sort((a, b) => Math.abs(LEVEL_ORDER.indexOf(a.level) - idx) - Math.abs(LEVEL_ORDER.indexOf(b.level) - idx));
+    fallback = guides.length > 0;
+  }
+  view.innerHTML = `
+    <section class="stack">
+      <span class="eyebrow">${esc(styleName(style))} · ${esc(levelName(level))}${medium ? ` · ${esc(mediumName(medium))}` : ''}</span>
+      <h1>Ideas for you</h1>
+      ${fallback ? `<p class="notice">No ${esc(levelName(level).toLowerCase())} ${medium ? esc(mediumName(medium).toLowerCase()) + ' ' : ''}guide yet, so here are the closest levels.</p>` : ''}
+    </section>
+    ${guides.length ? `<div class="grid">${guides.map(guideCard).join('')}</div>`
+      : empty('No guides for this combination yet.', '<button class="btn" type="button" id="any">Try any paint</button>')}`;
+  view.querySelector('#any')?.addEventListener('click', () => go('results', { style, level, medium: '' }, { replace: true }));
+};
+
+VIEWS.guide = ({ id }) => {
+  const g = getGuide(id);
+  if (!g) { view.innerHTML = empty('This guide no longer exists.'); return; }
+  const me = userData();
+  const done = new Set(me?.progress[g.id] || []);
+  const shared = db.paintings.filter((p) => p.guideId === g.id && p.visibility === 'public');
+  const liked = me?.likedGuides.includes(g.id), planned = me?.planned.includes(g.id);
+  const pct = Math.round((done.size / g.steps.length) * 100);
+
+  view.innerHTML = `
+    <section class="guide-head">
+      <img src="${artURL(g.style, g.id, 1050, 450)}" alt="">
+      <span class="eyebrow">${esc(styleName(g.style))} · ${esc(levelName(g.level))}</span>
+      <h1>${esc(g.title)}</h1>
+      <p class="muted">${esc(g.summary)}</p>
+      <div class="facts">
+        <div><span class="eyebrow">Time</span><b class="mono">~${fmtDuration(g.durationMinutes)}</b></div>
+        <div><span class="eyebrow">Medium</span><b>${esc(mediumName(g.medium))}</b></div>
+        <div><span class="eyebrow">Surface</span><b>${esc(g.canvas)}</b></div>
+      </div>
+      <div class="row">
+        <button class="btn ${liked ? 'on' : ''}" type="button" data-act="like" aria-pressed="${!!liked}">${liked ? '♥ Liked' : '♡ Like'}</button>
+        <button class="btn ${planned ? 'on' : ''}" type="button" data-act="plan" aria-pressed="${!!planned}">${planned ? '✓ In my plan' : '+ Plan to paint'}</button>
+      </div>
+    </section>
+
+    <div class="two-col">
+      <section class="stack-lg">
+        <div class="panel">
+          <h2>Your palette</h2>
+          <div class="palette">${paletteFor(g).map(([n, hex, code]) => `<div class="paint"><div class="blob" style="background:${hex}"></div><span>${esc(n)}</span>${code ? `<span class="mono">${code}</span>` : ''}</div>`).join('')}</div>
+        </div>
+        <div class="panel">
+          <h2>Materials</h2>
+          <ul class="checklist">${g.materials.map((m, i) => `<li><input type="checkbox" id="mat-${i}"><label for="mat-${i}">${esc(m)}</label></li>`).join('')}</ul>
+        </div>
+        ${g.tips?.length ? `<div class="panel"><h2>Tips</h2><ul style="margin:0;padding-left:20px;display:grid;gap:6px">${g.tips.map((t) => `<li>${esc(t)}</li>`).join('')}</ul></div>` : ''}
+      </section>
+
+      <section class="panel">
+        <div class="row" style="justify-content:space-between"><h2>Step by step</h2><span class="mono small muted">${done.size}/${g.steps.length}</span></div>
+        <div class="progress" aria-hidden="true"><div style="width:${pct}%"></div></div>
+        ${me ? '' : '<p class="hint">Log in to save your progress.</p>'}
+        <ol class="checklist steps">
+          ${g.steps.map((s, i) => `<li class="${done.has(i) ? 'done' : ''}">
+            <span class="n">${i + 1}</span>
+            <div class="step-text"><h3>${esc(s.title)}</h3><p>${esc(s.text)}</p></div>
+            <input type="checkbox" data-step="${i}" ${done.has(i) ? 'checked' : ''} aria-label="Step ${i + 1} done">
+          </li>`).join('')}
+        </ol>
+        ${done.size === g.steps.length ? '<p class="notice">All steps done. Time to photograph your canvas.</p>' : ''}
+        <button class="btn primary block" type="button" data-act="upload">I finished: upload my painting</button>
+      </section>
+    </div>
+
+    ${shared.length ? `<section class="stack"><h2>Painted by others</h2><div class="grid">${shared.map((p) => paintingCard(p)).join('')}</div></section>` : ''}`;
+
+  view.onchange = (e) => {
+    const step = e.target.dataset?.step; if (step === undefined) return;
+    e.target.checked ? done.add(+step) : done.delete(+step);
+    if (me) { me.progress[g.id] = [...done].sort((a, b) => a - b); save(); }
+    const y = window.scrollY; render(); window.scrollTo({ top: y });
+    if (done.size === g.steps.length) toast('All steps done!');
+  };
+  view.onclick = (e) => {
+    const act = e.target.closest('[data-act]')?.dataset.act;
+    if (!act) return;
+    if (act === 'upload') return currentUser() ? go('upload', { guideId: g.id }) : needAccount('Sign up to upload your painting and keep it on your page.');
+    if (!me) return needAccount(act === 'like' ? 'Sign up to keep the guides you like.' : 'Sign up to plan what to paint next.');
+    const list = act === 'like' ? me.likedGuides : me.planned;
+    const i = list.indexOf(g.id);
+    i >= 0 ? list.splice(i, 1) : list.push(g.id);
+    save();
+    toast(act === 'like' ? (i >= 0 ? 'Removed from likes' : 'Added to likes') : (i >= 0 ? 'Removed from your plan' : 'Added to “Planned next”'));
+    const y = window.scrollY; render(); window.scrollTo({ top: y });
+  };
+};
+
+VIEWS.upload = ({ guideId }) => {
+  const user = currentUser();
+  if (!user) { view.innerHTML = empty('Log in to upload a painting.', '<button class="btn primary" type="button" id="to-login">Log in</button>'); view.querySelector('#to-login').onclick = () => go('login', { next: 'upload' }); return; }
+  const guide = guideId ? getGuide(guideId) : null;
+  let photo = null;
+  view.innerHTML = `
+    <section class="stack"><span class="eyebrow">New painting</span><h1>Upload your painting</h1>
+      ${guide ? `<p class="muted">Painted with <b>${esc(guide.title)}</b>.</p>` : ''}</section>
+    <form id="up" class="stack-lg" novalidate>
+      <label class="drop" id="drop" for="photo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8a2 2 0 012-2h2l2-3h6l2 3h2a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><circle cx="12" cy="13" r="4"/></svg>
+        <b>Take or choose a photo</b>
+        <span class="small">Daylight, straight on, no flash. JPEG, PNG or WebP.</span>
+      </label>
+      <input class="visually-hidden" id="photo" type="file" accept="image/*">
+      <div class="field"><label for="title">Title</label><input id="title" name="title" type="text" maxlength="80" value="${esc(guide?.title || '')}" required></div>
+      ${guide ? '' : `<div class="field"><label for="style">Style</label><select id="style" name="style"><option value="">Choose…</option>${STYLES.map((s) => `<option value="${s.id}">${esc(s.name)}</option>`).join('')}</select></div>`}
+      <div class="field"><label for="notes">Notes <span class="muted small" style="font-weight:400">optional</span></label><textarea id="notes" name="notes" maxlength="1000" placeholder="What went well? What would you try next time?"></textarea></div>
+      <div class="field"><span class="label">Who can see it?</span>
+        <div class="pills" role="radiogroup">
+          <button class="pill" type="button" data-vis="private" aria-pressed="true">Only me</button>
+          <button class="pill" type="button" data-vis="public" aria-pressed="false">Everyone (gallery)</button>
+        </div>
+        <p class="hint" id="vis-hint">Private paintings appear only on your page. You can change this later.</p>
+      </div>
+      <button class="btn primary" type="submit">Save painting</button>
+    </form>`;
+  let visibility = 'private';
+  const drop = view.querySelector('#drop');
+  view.querySelector('#photo').onchange = async (e) => {
+    const file = e.target.files[0]; if (!file) return;
+    if (!/^image\//.test(file.type)) return toast('Please choose a photo.');
+    try {
+      photo = await downscale(file, 1400);
+      drop.classList.add('has-image');
+      drop.innerHTML = `<img src="${photo}" alt="Your painting">`;
+    } catch { toast('That photo could not be read. Try a JPEG or PNG.'); }
+  };
+  view.onclick = (e) => {
+    const v = e.target.closest('[data-vis]'); if (!v) return;
+    visibility = v.dataset.vis;
+    view.querySelectorAll('[data-vis]').forEach((b) => b.setAttribute('aria-pressed', String(b === v)));
+    view.querySelector('#vis-hint').textContent = visibility === 'public'
+      ? 'Public paintings appear in the gallery, where others can like and rate them.'
+      : 'Private paintings appear only on your page. You can change this later.';
+  };
+  view.querySelector('#up').onsubmit = async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const title = String(fd.get('title') || '').trim();
+    const style = guide?.style || fd.get('style');
+    if (!photo) return toast('Add a photo of your painting.');
+    if (!title) return toast('Give your painting a title.');
+    if (!style) return toast('Choose a style.');
+    const id = 'u' + Date.now().toString(36);
+    images.set(id, photo);
+    await idb.put(id, photo);
+    db.paintings.unshift({ id, owner: user.name, title, notes: String(fd.get('notes') || '').trim(), style, guideId: guide?.id || null, visibility, createdAt: Date.now(), image: `idb:${id}`, ratings: {}, likes: [] });
+    const me = userData();
+    if (guide) me.planned = me.planned.filter((x) => x !== guide.id);
+    save();
+    toast(visibility === 'public' ? 'Saved and shared in the gallery' : 'Saved to your page');
+    history.length = 0;
+    go('painting', { id }, { replace: true });
+  };
+};
+
+function downscale(file, max) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const s = Math.min(1, max / Math.max(img.width, img.height));
+      const c = document.createElement('canvas'); c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      resolve(c.toDataURL('image/jpeg', 0.85));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('bad image')); };
+    img.src = url;
+  });
+}
+
+VIEWS.gallery = (params) => {
+  const me = userData();
+  const style = params.style || '', sort = params.sort || 'newest';
+  let list = db.paintings.filter((p) => p.visibility === 'public' && !(me?.blocked.includes(p.owner)) && !(me?.reported.includes(p.id)));
+  if (style) list = list.filter((p) => p.style === style);
+  list.sort(sort === 'top' ? (a, b) => (avg(b.ratings) ?? 0) - (avg(a.ratings) ?? 0) : (a, b) => b.createdAt - a.createdAt);
+  view.innerHTML = `
+    <section class="stack"><span class="eyebrow">Gallery</span><h1>Painted by the community</h1>
+      <p class="muted">Public paintings from everyone. Tap one to rate it.</p></section>
+    <div class="stack">
+      <div class="pills" role="group" aria-label="Filter by style">
+        <button class="pill" type="button" data-f-style="" aria-pressed="${!style}">All</button>
+        ${STYLES.map((s) => `<button class="pill" type="button" data-f-style="${s.id}" aria-pressed="${s.id === style}">${esc(s.name)}</button>`).join('')}
+      </div>
+      <div class="pills" role="group" aria-label="Sort">
+        <button class="pill" type="button" data-sort="newest" aria-pressed="${sort === 'newest'}">Newest</button>
+        <button class="pill" type="button" data-sort="top" aria-pressed="${sort === 'top'}">Top rated</button>
+      </div>
+    </div>
+    ${list.length ? `<div class="grid">${list.map((p) => paintingCard(p)).join('')}</div>` : empty('No paintings here yet.')}`;
+  view.onclick = (e) => {
+    const f = e.target.closest('[data-f-style]'); if (f) return go('gallery', { style: f.dataset.fStyle, sort }, { replace: true });
+    const s = e.target.closest('[data-sort]'); if (s) return go('gallery', { style, sort: s.dataset.sort }, { replace: true });
+  };
+};
+
+VIEWS.painting = ({ id }) => {
+  const p = db.paintings.find((x) => x.id === id);
+  const user = currentUser(), me = userData();
+  if (!p || (p.visibility === 'private' && p.owner !== user?.name)) { view.innerHTML = empty('This painting is private or was deleted.'); return; }
+  const isOwner = user?.name === p.owner;
+  const a = avg(p.ratings), n = Object.keys(p.ratings).length, mine = user ? p.ratings[user.name] : null;
+  const guide = p.guideId ? getGuide(p.guideId) : null;
+  const liked = me?.likedPaintings.includes(p.id);
+  view.innerHTML = `
+    <img class="painting-img" src="${paintingSrc(p)}" alt="${esc(p.title)}">
+    <section class="stack">
+      <span class="eyebrow">${esc(styleName(p.style))} · ${fmtDate(p.createdAt)}</span>
+      <h1>${esc(p.title)}</h1>
+      <p class="muted">by ${esc(p.owner)}${p.visibility === 'private' ? ' · <span class="tag lock">Private</span>' : ''}</p>
+      ${p.notes ? `<p>${esc(p.notes)}</p>` : ''}
+      ${guide ? `<button class="btn" type="button" data-guide="${esc(guide.id)}" style="justify-self:start">Guide: ${esc(guide.title)}</button>` : ''}
+      <p>${n ? `<span class="stars">${starsText(a)}</span> <span class="mono">${a}</span> <span class="muted">from ${n} rating${n > 1 ? 's' : ''}</span>` : '<span class="muted">No ratings yet</span>'}</p>
+    </section>
+    ${isOwner ? `
+      <section class="panel">
+        <h2>Manage</h2>
+        <div class="pills" role="radiogroup" aria-label="Visibility">
+          <button class="pill" type="button" data-vis="private" aria-pressed="${p.visibility === 'private'}">Only me</button>
+          <button class="pill" type="button" data-vis="public" aria-pressed="${p.visibility === 'public'}">Everyone (gallery)</button>
+        </div>
+        <p class="hint">${p.visibility === 'private' ? 'Only you can see this painting.' : 'Visible in the gallery. Others can like and rate it.'}</p>
+        <button class="btn danger" type="button" data-act="delete" style="justify-self:start">Delete painting</button>
+      </section>` : `
+      <section class="panel">
+        <h2>Your rating</h2>
+        <div class="star-input" role="group" aria-label="Rate this painting">
+          ${[1, 2, 3, 4, 5].map((s) => `<button type="button" data-star="${s}" class="${(mine || 0) >= s ? 'on' : ''}" aria-label="${s} star${s > 1 ? 's' : ''}">★</button>`).join('')}
+        </div>
+        <div class="row">
+          <button class="btn ${liked ? 'on' : ''}" type="button" data-act="like">${liked ? '♥ Liked' : '♡ Like'}</button>
+        </div>
+        <div class="row"><button class="link-btn" type="button" data-act="report">Report</button><button class="link-btn" type="button" data-act="block">Block ${esc(p.owner)}</button></div>
+      </section>`}`;
+
+  view.onclick = async (e) => {
+    const star = e.target.closest('[data-star]');
+    const vis = e.target.closest('[data-vis]');
+    const act = e.target.closest('[data-act]')?.dataset.act;
+    if (!star && !vis && !act) return;
+    if (!user) return needAccount('Sign up to rate and like paintings.');
+    if (star) { p.ratings[user.name] = +star.dataset.star; save(); toast('Thanks for rating!'); }
+    else if (vis) { p.visibility = vis.dataset.vis; save(); toast(p.visibility === 'public' ? 'Now in the gallery' : 'Now private'); }
+    else if (act === 'like') { const i = me.likedPaintings.indexOf(p.id); i >= 0 ? me.likedPaintings.splice(i, 1) : me.likedPaintings.push(p.id); save(); }
+    else if (act === 'delete') {
+      if (!(await confirmSheet('Delete this painting?', 'The photo and its ratings will be removed. This cannot be undone.', 'Delete', true))) return;
+      db.paintings = db.paintings.filter((x) => x.id !== p.id); images.delete(p.id); idb.del(p.id); save();
+      toast('Painting deleted'); history.length = 0; return go('me', {}, { replace: true });
+    } else if (act === 'report') {
+      const fd = await openSheet(`
+        <h2>Report this painting</h2>
+        <p class="muted">The painter won't see who reported it. It will be hidden for you right away.</p>
+        <div class="stack">${['Inappropriate content', 'Not a painting', 'Copied from someone else', 'Harassment or hate', 'Spam'].map((r, i) =>
+          `<label class="row" style="gap:10px"><input type="radio" name="reason" value="${esc(r)}" ${i ? '' : 'checked'}> ${esc(r)}</label>`).join('')}</div>
+        <div class="row"><button class="btn primary" type="submit">Send report</button><button class="btn" type="button" data-close>Cancel</button></div>`);
+      if (!fd) return;
+      me.reported.push(p.id); save(); toast('Thanks. We’ll review it.'); return back();
+    } else if (act === 'block') {
+      if (!(await confirmSheet(`Block ${p.owner}?`, `You won't see ${p.owner}'s paintings in the gallery. You can unblock them in Settings.`, 'Block'))) return;
+      me.blocked.push(p.owner); save(); toast(`${p.owner} is blocked`); return back();
+    }
+    const y = window.scrollY; render(); window.scrollTo({ top: y });
+  };
+};
+
+VIEWS.me = (params) => {
+  const user = currentUser();
+  if (!user) {
+    view.innerHTML = `
+      <section class="stack"><span class="eyebrow">My page</span><h1>Your paintings, plans and likes</h1>
+      <p class="muted">Log in to keep everything you paint, like and plan in one place.</p></section>
+      <div class="row"><button class="btn primary" type="button" id="su">Sign up</button><button class="btn" type="button" id="li">Log in</button></div>`;
+    view.querySelector('#su').onclick = () => go('signup');
+    view.querySelector('#li').onclick = () => go('login');
+    return;
+  }
+  const me = userData();
+  const tab = params.tab || 'created';
+  const mine = db.paintings.filter((p) => p.owner === user.name);
+  const publicCount = mine.filter((p) => p.visibility === 'public').length;
+  const received = mine.reduce((s, p) => s + Object.keys(p.ratings).length, 0);
+  const TABS = [['created', 'Created'], ['liked', 'Liked'], ['planned', 'Planned'], ['settings', 'Settings']];
+
+  let body = '';
+  if (tab === 'created') {
+    body = mine.length ? `<div class="grid">${mine.map((p) => paintingCard(p, { showAuthor: false })).join('')}</div>`
+      : empty('You haven’t uploaded a painting yet.', '<button class="btn primary" type="button" data-nav="home">Find something to paint</button>');
+  } else if (tab === 'liked') {
+    const guides = me.likedGuides.map(getGuide).filter(Boolean);
+    const paintings = me.likedPaintings.map((id) => db.paintings.find((p) => p.id === id)).filter((p) => p && (p.visibility === 'public' || p.owner === user.name));
+    body = `<div class="stack"><h2>Guides</h2>${guides.length ? `<div class="grid">${guides.map(guideCard).join('')}</div>` : empty('No liked guides yet.')}</div>
+      <div class="stack"><h2>Paintings</h2>${paintings.length ? `<div class="grid">${paintings.map((p) => paintingCard(p)).join('')}</div>` : empty('No liked paintings yet.', '<button class="btn" type="button" data-nav="gallery">Browse the gallery</button>')}</div>`;
+  } else if (tab === 'planned') {
+    const planned = me.planned.map(getGuide).filter(Boolean);
+    body = planned.length ? `<div class="grid">${planned.map(guideCard).join('')}</div>`
+      : empty('Nothing planned. Tap “Plan to paint” on a guide to save it here.', '<button class="btn primary" type="button" data-nav="home">Discover guides</button>');
+  } else {
+    body = `
+      <div class="panel">
+        <div class="field"><label for="lvl">Painting level</label>
+          <select id="lvl">${LEVELS.map((l) => `<option value="${l.id}" ${l.id === user.level ? 'selected' : ''}>${esc(l.name)}</option>`).join('')}</select>
+          <p class="hint">Used to pre-select suggestions on Discover.</p></div>
+      </div>
+      <div class="panel"><h2>Blocked painters</h2>
+        ${me.blocked.length ? `<ul class="checklist">${me.blocked.map((b) => `<li style="align-items:center"><span style="flex:1">${esc(b)}</span><button class="btn" type="button" data-unblock="${esc(b)}">Unblock</button></li>`).join('')}</ul>` : '<p class="muted">You haven’t blocked anyone.</p>'}
+      </div>
+      <div class="panel"><h2>Account</h2>
+        <div class="row"><button class="btn" type="button" data-act="logout">Log out</button><button class="btn danger" type="button" data-act="delete">Delete account</button></div>
+        <p class="demo-note">Prototype: accounts, photos and ratings are saved only in this browser. Nothing is sent to a server.</p>
+        <button class="link-btn" type="button" data-act="reset" style="justify-self:start">Reset prototype data</button>
+      </div>`;
+  }
+
+  view.innerHTML = `
+    <section class="profile">
+      <div class="avatar" aria-hidden="true">${esc(user.name[0].toUpperCase())}</div>
+      <div><h1 style="font-size:1.6rem">${esc(user.name)}</h1><p class="muted">${esc(levelName(user.level))} painter</p></div>
+    </section>
+    <div class="stats">
+      <div><b class="mono">${mine.length}</b><span class="small muted">paintings</span></div>
+      <div><b class="mono">${publicCount}</b><span class="small muted">in gallery</span></div>
+      <div><b class="mono">${received}</b><span class="small muted">ratings</span></div>
+    </div>
+    <div class="tabs" role="tablist">${TABS.map(([id, label]) => `<button role="tab" type="button" data-tab-id="${id}" aria-selected="${id === tab}">${label}</button>`).join('')}</div>
+    <section class="stack-lg">${body}</section>`;
+
+  view.onchange = (e) => { if (e.target.id === 'lvl') { db.users[user.name].level = e.target.value; save(); toast('Level updated'); render(); } };
+  view.onclick = async (e) => {
+    const t = e.target.closest('[data-tab-id]'); if (t) return go('me', { tab: t.dataset.tabId }, { replace: true });
+    const nav = e.target.closest('[data-nav]'); if (nav) { history.length = 0; return go(nav.dataset.nav, {}, { replace: true }); }
+    const ub = e.target.closest('[data-unblock]'); if (ub) { me.blocked = me.blocked.filter((b) => b !== ub.dataset.unblock); save(); toast('Unblocked'); return render(); }
+    const act = e.target.closest('[data-act]')?.dataset.act;
+    if (act === 'logout') { db.session = null; save(); toast('Logged out'); history.length = 0; return go('home', {}, { replace: true }); }
+    if (act === 'delete') {
+      if (!(await confirmSheet('Delete your account?', 'Your account, paintings, photos, ratings, likes and plans will be permanently deleted.', 'Delete everything', true))) return;
+      for (const p of mine) { images.delete(p.id); idb.del(p.id); }
+      db.paintings = db.paintings.filter((p) => p.owner !== user.name);
+      for (const p of db.paintings) delete p.ratings[user.name];
+      delete db.users[user.name]; delete db.me[user.name]; db.session = null; save();
+      toast('Your account was deleted'); history.length = 0; return go('home', {}, { replace: true });
+    }
+    if (act === 'reset') {
+      if (!(await confirmSheet('Reset the prototype?', 'All accounts, uploads and ratings in this browser are removed and the sample gallery is restored.', 'Reset', true))) return;
+      for (const p of db.paintings) if (p.image.startsWith('idb:')) idb.del(p.id);
+      images.clear(); db = seedData(); save(); history.length = 0; return go('home', {}, { replace: true });
+    }
+  };
+};
+
+function authView(mode) {
+  const isLogin = mode === 'login';
+  view.innerHTML = `
+    <section class="stack" style="max-width:440px">
+      <span class="eyebrow">${isLogin ? 'Log in' : 'Sign up'}</span>
+      <h1>${isLogin ? 'Welcome back' : 'Start your painting journal'}</h1>
+      <p class="muted">${isLogin ? 'Pick up where you left off.' : 'Save your progress, keep your paintings and share them when you are ready.'}</p>
+    </section>
+    <form id="auth" class="stack-lg" style="max-width:440px" novalidate>
+      <div class="field"><label for="u">Username</label>
+        <input id="u" name="u" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="30" required>
+        ${isLogin ? '' : '<p class="hint">3–30 letters, numbers, dots, dashes or underscores. Shown next to your public paintings.</p>'}</div>
+      <div class="field"><label for="p">Password</label>
+        <input id="p" name="p" type="password" autocomplete="${isLogin ? 'current-password' : 'new-password'}" maxlength="128" required>
+        ${isLogin ? '' : '<p class="hint">At least 8 characters.</p>'}</div>
+      ${isLogin ? '' : `<div class="field"><span class="label">Your level</span>
+        <div class="pills">${LEVELS.map((l, i) => `<button class="pill" type="button" data-lvl="${l.id}" aria-pressed="${i === 0}">${esc(l.name)}</button>`).join('')}</div></div>`}
+      <p class="hint" id="err" role="alert" style="color:var(--danger)"></p>
+      <button class="btn primary" type="submit">${isLogin ? 'Log in' : 'Create account'}</button>
+      <p>${isLogin ? 'New here? <button class="link-btn" type="button" id="swap">Create an account</button>' : 'Already have an account? <button class="link-btn" type="button" id="swap">Log in</button>'}</p>
+      <p class="demo-note">Prototype: your account is saved only in this browser.</p>
+    </form>`;
+  let level = 'beginner';
+  view.querySelector('#swap').onclick = () => go(isLogin ? 'signup' : 'login', {}, { replace: true });
+  view.onclick = (e) => {
+    const l = e.target.closest('[data-lvl]'); if (!l) return;
+    level = l.dataset.lvl; view.querySelectorAll('[data-lvl]').forEach((b) => b.setAttribute('aria-pressed', String(b === l)));
+  };
+  view.querySelector('#auth').onsubmit = async (e) => {
+    e.preventDefault();
+    const err = view.querySelector('#err');
+    const name = view.querySelector('#u').value.trim(), pass = view.querySelector('#p').value;
+    const key = Object.keys(db.users).find((k) => k.toLowerCase() === name.toLowerCase());
+    if (isLogin) {
+      const u = key && db.users[key];
+      if (!u || u.sample || u.hash !== await hashPassword(key, pass)) { err.textContent = 'Wrong username or password.'; return; }
+      db.session = key;
+    } else {
+      if (!/^[A-Za-z0-9._-]{3,30}$/.test(name)) { err.textContent = 'Username must be 3–30 letters, numbers, dots, dashes or underscores.'; return; }
+      if (key) { err.textContent = 'That username is taken. Try another one.'; return; }
+      if (pass.length < 8) { err.textContent = 'Password must be at least 8 characters.'; return; }
+      db.users[name] = { level, hash: await hashPassword(name, pass), createdAt: Date.now() };
+      db.session = name;
+    }
+    db.welcomed = true; save();
+    toast(isLogin ? `Welcome back, ${db.session}` : `Welcome, ${db.session}!`);
+    const next = route.params.next;
+    const resume = returnTo;
+    returnTo = null;
+    history.length = 0;
+    if (resume) go(resume.name, resume.params, { replace: true });
+    else go(next || (isLogin ? 'me' : 'home'), {}, { replace: true });
+  };
+}
+VIEWS.login = () => authView('login');
+VIEWS.signup = () => authView('signup');
+
+// =====================================================================
+// Start
+// =====================================================================
+(async () => {
+  // Load uploaded photos into memory so cards render synchronously.
+  await Promise.all(db.paintings.filter((p) => p.image.startsWith('idb:')).map(async (p) => {
+    const v = await idb.get(p.id); if (v) images.set(p.id, v);
+  }));
+  render();
+})();
+})();
+</script>
+</body>
+</html>

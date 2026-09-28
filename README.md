@@ -9,6 +9,19 @@ A mobile-first web app for people who want to start practising painting on a rea
 5. **Gallery**: everyone can browse public paintings, rate them 1–5 stars, like, report or block the painter.
 6. **My page**: *Created*, *Liked*, *Planned next*, *My AI guides* and *Settings* (level, password, blocked users, log out, delete account).
 
+## Clickable prototype (no server, no hosting)
+
+`prototype/index.html` is a single self-contained file with the full UI and UX: onboarding, discover (style, level,
+paint), guides with palette swatches and step tracking, sign-up/login, photo upload, private/public, gallery with
+ratings, likes, report and block, and My page (created, liked, planned, settings).
+
+- **Open it:** double-click `prototype/index.html`. It works offline in any modern browser.
+- **Data:** accounts, uploads and ratings are saved only in that browser (localStorage and IndexedDB). Nothing is sent anywhere.
+  The gallery starts with sample paintings by example users. *Settings → Reset prototype data* restores it.
+- **Edit:** change `prototype/template.html` (or the guides in `server/content/guides.js`), then run `npm run build:prototype`.
+
+The server version described below is kept for later; the prototype does not need it.
+
 ## Accounts and security
 
 - Username + password (min. 8 characters). Passwords are hashed with scrypt, and sessions use an HttpOnly cookie (Secure in production).
